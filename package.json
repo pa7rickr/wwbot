@@ -2,7 +2,7 @@
   "name": "pa7rick-multidevice",
   "version": "4.10.2",
   "description": "WhatsApp Bot supported Multi-Device.",
-  "main": "index.js",
+  "main": "pm2 start node -- index.js && pm2 save && pm2 logs",
   "directories": {
     "lib": "lib"
   },

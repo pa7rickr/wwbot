@@ -36,6 +36,13 @@ const spins = new Spinnies({
      }
 })
 
+try {
+    require.resolve("yt-search")
+} catch(e) {
+    console.log(`plugin "yt-search" is not found. Trying to installing...`)
+    exec('npm i yt-search && pm2 restart index.js', (err, stdout) => { return console.log(err) })
+}
+
 console.log(color(figlet.textSync('PatrickBot', {
 	font: 'Standard',
 	horizontalLayout: 'default',
