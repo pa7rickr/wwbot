@@ -2,13 +2,13 @@
   "name": "pa7rick-multidevice",
   "version": "4.10.2",
   "description": "WhatsApp Bot supported Multi-Device.",
-  "main": "pm2 start node -- index.js && pm2 save && pm2 logs",
+  "main": "index.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.js"
+    "start": "pm2 start nodr -- index.js && pm2 save && pm2 logs"
   },
   "author": "pa7rickr",
   "license": "MIT",
