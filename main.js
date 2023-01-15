@@ -244,7 +244,7 @@ module.exports = async (conn, m, message, store) => {
       // Werewolf Game
       case "/werewolf": {
         if (m.chat !== game.groupId) return m.reply('Perintah hanya dapat digunakan di grup (https://chat.whatsapp.com/FIdMh612Iru1ZQgrXLp8KN)')
-        if (!isGroup) return global.mess("group", m)
+        if (!m.isGroup) return global.mess("group", m)
         if (game.state !== 'lobby') return conn.sendMessage(m.chat, game.state == 'waiting' ? 'Silahkan mereaksi 🐺 pesan itu untuk bergabung dalam permainan.' : 'Game sudah dimulai. Anda tidak dapat lagi bergabung.', game.state == 'waiting' ? game.quotedReactID : '')
         game.state = 'waiting'
         let reactID = await conn.sendTextWithMentions(m.chat, `Permainan telah berhasil dibuat. Silahkan me-reaksi pesan ini dengan emoji 🐺`, m)
@@ -253,8 +253,8 @@ module.exports = async (conn, m, message, store) => {
       break
       case "/startgame": {
         if (m.chat !== game.groupId) return
-        if (!isGroup) return global.mess("group", m)
-        if (!isOwner) return m.reply('Anda bukan moderator.')
+        if (!m.isGroup) return global.mess("group", m)
+        if (!isCreator) return m.reply('Anda bukan moderator.')
         if (game.state !== 'waiting') return m.reply('Game sudah dimulai atau sedang dalam proses.');
         if (Object.keys(game.players).length < game.minimumPlayers) return conn.sendMessage(m.chat, `Belum terdapat minimal ${game.minimumPlayers - Object.keys(game.players).length} pemain yang dibutuhkan untuk memulai game.\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}`);
         let shufflePlayers = shuffleArray(game.players)
