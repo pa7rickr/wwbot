@@ -142,29 +142,14 @@ module.exports = async (conn, m, message, store) => {
         chalk.greenBright(args.length)
       )
     }
-
-    if (m.mtype == 'reactionMessage' && m.msg.key.id == game.quotedReactID) {
-      if (message.reaction == '🐺') {
-        if (Object.keys(game.players).length > game.maximumPlayers) return conn.sendMessage(message.id.remote, `Jumlah pemain dalam room terdapat 32 pemain! Anda tidak dapat bergabung. Jika anda Moderator, silahkan ketik /start-ww`);
-        let player = game.players[message.senderId];
-        if (player) return conn.sendTextWithMentions(m.chat, `@${m.sender} sudah terdaftar di game ini.\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}`);
-        // Jika belum terdaftar, daftarkan pemain ke database
-        game.players[message.senderId] = {
-          id: message.senderId,
-          alive: true,
-          votes: 0
-        };
-        conn.sendTextWithMentions(m.chat, `*[ Werewolf - Game ]*\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}\n\nKamu telah berhasil didaftarkan di game ini. ${Object.keys(game.players).length >= game.minimumPlayers ? 'Permainan ini dapat dimulai, ketik /start-ww untuk memulai permainan.' : 'Permainan ini tak dapat dimulai, karena pemain yang bergabung kurang dari 5.'}`);
-      } else if (message.reaction = '') {
-        delete game.players[message.senderId]
-      }
-    }
+  //  console.log(m, m.msg.key.id == game.quotedReactID)
+    
     
     if ((game.state !== 'waiting') && game.players[m.sender] && game.players[m.sender].alive) { 
       let player = game.players[m.sender] 
       if (budy.startsWith('/vote') && game.state == 'vote') { 
         if (player.hasVoted) return conn.sendMessageWerewolf(m.chat, 'Maaf, kamu sudah mem-voting pemain saat ini.'); 
-        if (!(game.quotedStanzaID == quoted.msg.key.id)) return conn.sendMessageWerewolf(game.groupId, `Hmm, sepertinya @${player.id} tidak mereply pesan atas (yang saya reply). Silahkan mengirim ulang command anda dengan mereply pesan diatas.`, { 
+        if (!(game.quotedStanzaID == quoted.key.id)) return conn.sendMessageWerewolf(game.groupId, `Hmm, sepertinya @${player.id} tidak mereply pesan atas (yang saya reply). Silahkan mengirim ulang command anda dengan mereply pesan diatas.`, { 
           quoted: game.quotedStanzaID 
         }) 
         let votedPlayerIndex = text; 
@@ -245,10 +230,10 @@ module.exports = async (conn, m, message, store) => {
       case "/werewolf": {
         if (m.chat !== game.groupId) return m.reply('Perintah hanya dapat digunakan di grup (https://chat.whatsapp.com/FIdMh612Iru1ZQgrXLp8KN)')
         if (!m.isGroup) return global.mess("group", m)
-        if (game.state !== 'lobby') return conn.sendMessage(m.chat, game.state == 'waiting' ? 'Silahkan mereaksi 🐺 pesan itu untuk bergabung dalam permainan.' : 'Game sudah dimulai. Anda tidak dapat lagi bergabung.', game.state == 'waiting' ? game.quotedReactID : '')
+        if (game.state !== 'lobby') return conn.sendText(m.chat, game.state == 'waiting' ? 'Silahkan mereaksi 🐺 pesan itu untuk bergabung dalam permainan.' : 'Game sudah dimulai. Anda tidak dapat lagi bergabung.', game.state == 'waiting' ? game.quotedReactID : '')
         game.state = 'waiting'
         let reactID = await conn.sendTextWithMentions(m.chat, `Permainan telah berhasil dibuat. Silahkan me-reaksi pesan ini dengan emoji 🐺`, m)
-        game.quotedReactID = reactID.msg.key.id
+        game.quotedReactID = reactID.key.id
       }
       break
       case "/startgame": {
@@ -256,7 +241,7 @@ module.exports = async (conn, m, message, store) => {
         if (!m.isGroup) return global.mess("group", m)
         if (!isCreator) return m.reply('Anda bukan moderator.')
         if (game.state !== 'waiting') return m.reply('Game sudah dimulai atau sedang dalam proses.');
-        if (Object.keys(game.players).length < game.minimumPlayers) return conn.sendMessage(m.chat, `Belum terdapat minimal ${game.minimumPlayers - Object.keys(game.players).length} pemain yang dibutuhkan untuk memulai game.\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}`);
+        if (Object.keys(game.players).length < game.minimumPlayers) return conn.sendText(m.chat, `Belum terdapat minimal ${game.minimumPlayers - Object.keys(game.players).length} pemain yang dibutuhkan untuk memulai game.\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}`);
         let shufflePlayers = shuffleArray(game.players)
         game.players = shufflePlayers
         conn.sendText(m.chat, '*[ Werewolf - Game ]*\n\nBerhasil memulai permainan. Silahkan melihat chat pribadi bot masing-masing untuk melihat role yang didapatkan. 🐺💂🔮', m)
@@ -269,7 +254,7 @@ module.exports = async (conn, m, message, store) => {
       }
       break;
       case "/endgame": {
-        if (game.state == 'waiting') return conn.sendMessage(m.chat, 'Game belum dimulai');
+        if (game.state == 'waiting') return conn.sendText(m.chat, 'Game belum dimulai');
         endGame()
       }
       break
@@ -476,7 +461,7 @@ command yang ada di PatrickBot
         if (!room) return m.reply(`Kamu tidak sedang berada di dalam anonymous chat\nKetik */start* untuk mencari partner chat!`)
         m.reply(`Berhasil meninggalkan partner chat.`)
         let other = room.other(m.sender)
-        if (other) conn.sendMessage(other, `Partner meninggalkan chat.\nKetik */start* untuk mencari partner chat.`)
+        if (other) conn.sendText(other, `Partner meninggalkan chat.\nKetik */start* untuk mencari partner chat.`)
         delete this.anonymous[room.id]
         if (command === '/leave') break
       }
@@ -485,7 +470,7 @@ command yang ada di PatrickBot
         if (Object.values(this.anonymous).find(room => room.check(m.sender))) return m.reply(`Kamu masih berada di dalam anonymous chat\nKetik */next* untuk melewati partner chat!\nKetik */leave* untuk meninggalkan partner chat!`)
         let room = Object.values(this.anonymous).find(room => room.state === 'WAITING' && !room.check(m.sender))
         if (room) {
-          conn.sendMessage(room.a, `Partner telah ditemukan.\nKetik */next* untuk melewati partner chat.\nKetik */leave* untuk meninggalkan partner chat.`)
+          conn.sendText(room.a, `Partner telah ditemukan.\nKetik */next* untuk melewati partner chat.\nKetik */leave* untuk meninggalkan partner chat.`)
           room.b = m.sender
           room.state = 'CHATTING'
           m.reply(`Partner telah ditemukan.\nKetik */next* untuk melewati partner chat.\nKetik */leave* untuk meninggalkan partner chat.`)
@@ -628,8 +613,8 @@ command yang ada di PatrickBot
         teks += `Tunggu bentar, file lagi dikirim segera.`
         if (filesize > 100000) {
           teks += `Ukuran file lebih dari 100 MB (Batas >= 100 MB)`
-          return conn.sendMessage(m.chat, teks, {
-            quoted: m.msg.key.id
+          return conn.sendText(m.chat, teks, {
+            quoted: m
           })
         } else teks += `Tunggu bentar, file lagi dikirim segera.`
         conn.sendText(m.chat, teks, m)
@@ -995,9 +980,9 @@ command yang ada di PatrickBot
             setTimeout(async function() {
               game.state = 'vote'
               let stanzaID = await conn.sendMessageWerewolf(game.groupId, `*[ Werewolf - Game ]*\n\n🚨 Waktu diskusi telah selesai! 🚨\n\n🗳️ Voting sesi siang telah dimulai! Reply pesan ini dengan mengirim */vote <nomor pemain>* untuk memilih pemain yang akan dihukum gantung. Kalian hanya mempunyai ⏰ ${game.discussionDuration / 1000} detik untuk memilih suara.\n📝 List pemain yang dapat divoting: \n${getPlayerListString()}\n\n⚠️ *Peringatan:* Anda hanya bisa vote sekali saat voting sesi siang. Jadi pastikan pilihanmu sudah tepat sebelum mengirimkan suara.`, {
-                quoted: discussMessage.msg.key.id
+                quoted: discussMessage
               })
-              game.quotedStanzaID = stanzaID.msg.key.id
+              game.quotedStanzaID = stanzaID.key.id
               setTimeout(endDay, game.dayDuration);
             }, game.discussionDuration)
           }
@@ -1039,7 +1024,7 @@ command yang ada di PatrickBot
               `*[ Werewolf - Game ]*\n\n💔 Sayang sekali, @${killedPlayer.id} telah dibunuh dengan dihukum gantung. Kamu tidak bisa melanjutkan permainan lagi. ${killedPlayer.role == 'werewolf' ? 'Tapi ternyata' : 'Ternyata'} peran dia adalah ${killedPlayer.role == 'werewolf' ? 'werewolf 🐺' : killedPlayer.role + ' yang tidak beruntung 🙁'}. Sepertinya hari mulai menjadi gelap 🌙. Semangat untuk malam hari yang akan datang! 🔥`,
               `*[ Werewolf - Game ]*\n\n😢 @${killedPlayer.id} telah dibunuh dengan dihukum gantung karena memiliki jumlah voting terbanyak. ${killedPlayer.role == 'werewolf' ? 'Tapi ternyata' : 'Ternyata'} peran dia adalah ${killedPlayer.role == 'werewolf' ? 'werewolf 🐺' : killedPlayer.role + ' yang tidak beruntung 💔'}. Sepertinya hari mulai menjadi gelap 🌙. Semangat untuk malam hari yang akan datang! 🔥`
             ][Math.floor(Math.random() * 3)], {
-            quoted: messageResult.msg.key.id
+            quoted: messageResult
           });
           conn.sendMessageWerewolf(killedPlayer.id, [
               `*[ Werewolf - Game ]*\n\nYahh! Kamu telah dibunuh dengan dihukum gantung 💀 Sayang sekali, permainanmu di sini sudah berakhir 💔 Tapi jangan menyerah, coba lagi di permainan berikutnya 💪🏼`,
@@ -1048,7 +1033,7 @@ command yang ada di PatrickBot
               `*[ Werewolf - Game ]*\n\nGame over! Kamu telah dibunuh dengan dihukum gantung 💀 Sayang sekali, permainanmu di sini sudah berakhir 💔 Tapi jangan menyerah, coba lagi di permainan berikutnya 💪🏼`,
               `*[ Werewolf - Game ]*\n\nKamu terkena imbas dari voting terbanyak dan harus dihukum gantung 💀 Sayang sekali, permainanmu di sini sudah berakhir 💔 Tapi jangan menyerah, coba lagi di permainan berikutnya 💪🏼`
             ][Math.floor(Math.random() * 5)], {
-            quoted: messageResult.msg.key.id
+            quoted: messageResult
           })
           delete game.players[killedPlayer.id];
           game.allPlayers[killedPlayer.id].alive = false
@@ -1080,9 +1065,9 @@ command yang ada di PatrickBot
             let player = game.players[playerId];
             if ((player.role === 'werewolf' || player.role === 'seer' || player.role === 'guardian')) {
               let listString = getPlayerListString();
-              if (player.role === 'werewolf') conn.sendMessageWerewolf(player.id, fileww.playerNightAction(1, listString), mNight.msg.key.id)
-              else if (player.role === 'seer') conn.sendMessageWerewolf(player.id, fileww.playerNightAction(2, listString), mNight.msg.key.id)
-              else if (player.role === 'guardian') conn.sendMessageWerewolf(player.id, teks, fileww.playerNightAction(3, listString), mNight.msg.key.id)
+              if (player.role === 'werewolf') conn.sendMessageWerewolf(player.id, fileww.playerNightAction(1, listString), mNight)
+              else if (player.role === 'seer') conn.sendMessageWerewolf(player.id, fileww.playerNightAction(2, listString), mNight)
+              else if (player.role === 'guardian') conn.sendMessageWerewolf(player.id, teks, fileww.playerNightAction(3, listString), mNight)
             }
           }
           setTimeout(endNight, game.nightDuration);
@@ -1122,6 +1107,23 @@ command yang ada di PatrickBot
             return
           } else setTimeout(startDay, 10 * 1000);
         }
+        
+        if (m.mtype == 'reactionMessage' && m?.msg?.key?.id == game.quotedReactID) {
+        if (m.body == '🐺') {
+          if (Object.keys(game.players).length > game.maximumPlayers) return conn.sendMessage(message.id.remote, `Jumlah pemain dalam room terdapat 32 pemain! Anda tidak dapat bergabung. Jika anda Moderator, silahkan ketik /start-ww`);
+          let player = game.players[m.sender];
+          if (player) return conn.sendTextWithMentions(m.chat, `@${m.sender} sudah terdaftar di game ini.\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}`);
+          // Jika belum terdaftar, daftarkan pemain ke database
+          game.players[m.sender] = {
+            id: m.sender,
+            alive: true,
+            votes: 0
+          };
+          conn.sendTextWithMentions(m.chat, `*[ Werewolf - Game ]*\n\n📜 List pemain yang bergabung:\n${getPlayerListString ()}\n\nKamu telah berhasil didaftarkan di game ini. ${Object.keys(game.players).length >= game.minimumPlayers ? 'Permainan ini dapat dimulai, ketik /start-ww untuk memulai permainan.' : 'Permainan ini tak dapat dimulai, karena pemain yang bergabung kurang dari 5.'}`);
+        } else if (message.reaction = '') {
+          delete game.players[message.senderId]
+        }
+      }
     }
   } catch (e) {
     console.error(e)
